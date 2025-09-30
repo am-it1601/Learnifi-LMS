@@ -44,10 +44,10 @@ const ChapterSchema = new mongoose.Schema({
 },{ _id: false });
 const CourseSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      required: true,
-    },
+    // _id: {
+    //   type: String,
+    //   required: true,
+    // },
     courseTitle: {
       type: String,
       required: true,

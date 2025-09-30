@@ -76,10 +76,8 @@ const finalAmount = price - (discount * price / 100);
             userId,
             amount: Number(finalAmount.toFixed(2)),// in cents
         }
-console.log({purchaseData});
 
         const  newPurchase = await Purchase.create(purchaseData);
-
 
         // stripe payment integration can be added here
 
@@ -109,8 +107,6 @@ console.log({purchaseData});
                 purchaseId: newPurchase._id.toString(),
             },
         });
-
-        console.log('Stripe checkout session created:', session);
 
         // respond with success message and purchase details
         res.json({

@@ -81,28 +81,22 @@ export const stripeWebhooks = async (request, response) => {
       });
 
       const { purchaseId } = session.data[0].metadata;
-      console.log("purchaseId:", purchaseId);
-      
 
       const purchaseData = await Purchase.findById(purchaseId);
-      
+
       const userData = await User.findById(purchaseData.userId);
       const courseData = await Course.findById(
         purchaseData.courseId.toString()
       );
 
       courseData.enrolledStudents.push(userData);
-     const ccursenew = await courseData.save();
-console.log('ccursenew:', ccursenew);
+      await courseData.save();
 
       userData.enrolledCourse.push(courseData._id);
-    const usser =  await userData.save();
-    console.log('usser:', usser);
-    
+      await userData.save();
 
       purchaseData.status = "completed";
-     const pppp= await purchaseData.save();
-      console.log('pppp:', pppp);
+      await purchaseData.save();
 
       break;
     }

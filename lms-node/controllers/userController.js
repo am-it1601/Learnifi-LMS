@@ -135,7 +135,7 @@ export const updateUserCourseProgress = async (req, res) => {
                 success: true, message: 'Lecture already marked as completed',
                })
             }
-            progressData.completedLectures.push(lectureId);
+            progressData.lectureCompleted.push(lectureId);
             await progressData.save();
         }else {
             await CourseProgress.create({ userId, courseId, lectureCompleted: [lectureId] });
@@ -156,7 +156,7 @@ export const updateUserCourseProgress = async (req, res) => {
 // get user course progress
 export const getUserCourseProgress = async (req, res) => {
     try {
-        const { courseId } = req.params;
+        const { courseId } = req.body;
         const { userId } = req.auth();
 
         const progressData = await CourseProgress.findOne({ userId, courseId });
@@ -175,16 +175,16 @@ export const getUserCourseProgress = async (req, res) => {
 
 // add user rating to course
 export const addCourseRating = async (req, res) => {
+    const { courseId, rating } = req.body;
+    const { userId } = req.auth();
+    
+    if (!courseId || !userId || !rating ||rating < 1 || rating > 5) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid input data'
+        });
+    }
     try {
-        const { courseId, rating } = req.body;
-        const { userId } = req.auth();
-
-        if (!courseId || !userId || !rating ||rating < 1 || rating > 5) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid input data'
-            });
-        }
         
         const courseData = await Course.findById(courseId);
         if (!courseData) {
@@ -202,19 +202,19 @@ export const addCourseRating = async (req, res) => {
                 message: 'User has not purchased this course'
             });
         }
-        const existingRatingIndex = courseData.courseRating.findIndex(r => r.userId.toString() === userId);
+        const existingRatingIndex = courseData.courseRatings.findIndex(r => r.userId === userId);
         if (existingRatingIndex > -1) {
             // Update existing rating
-            courseData.courseRating[existingRatingIndex].rating = rating;
+            courseData.courseRatings[existingRatingIndex].rating = rating;
         } else {
             // Add new rating
-            courseData.courseRating.push({ userId, rating });
+            courseData.courseRatings.push({ userId, rating });
         }
         await courseData.save();
 
         res.json({
             success: true,
-            message: 'Course rating added/updated successfully',
+            message: 'Course rating added',
         });
     } catch (error) {
         res.json({

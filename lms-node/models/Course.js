@@ -42,12 +42,10 @@ const ChapterSchema = new mongoose.Schema({
   },
   chapterContent: [lectureSchema],
 },{ _id: false });
+
+
 const CourseSchema = new mongoose.Schema(
   {
-    // _id: {
-    //   type: String,
-    //   required: true,
-    // },
     courseTitle: {
       type: String,
       required: true,
@@ -74,7 +72,7 @@ const CourseSchema = new mongoose.Schema(
       max: 100,
     },
     courseContent: [ChapterSchema],
-    courseRating: [
+    courseRatings: [
       { userId: { type: String }, rating: { type: Number, min: 1, max: 5 } },
     ],
     educator: {

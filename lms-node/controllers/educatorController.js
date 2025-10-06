@@ -51,7 +51,7 @@ export const addCourse = async (req, res) => {
             await newCourse.save()
         res.json({
             success: true,
-            message: 'Course created successfully',
+            message: 'Course Added',
         })
     } catch (error) {
         res.json({
@@ -91,7 +91,7 @@ export const getEducatorDashboardData = async (req, res) => {
         // Calculate total earnings and total students
         const purchases = await Purchase.find({ courseId: { $in: courseIds }, status: 'completed' });
         
-        const totalEarnings = purchases.reduce((total, purchase) => total + purchase.amount, 0);
+        const totalEarnings = purchases.reduce((total, purchase) => total + purchase.amount, 0).toFixed(2);
 
         const enrolledStudentsData = []
         for (const course of courses) {

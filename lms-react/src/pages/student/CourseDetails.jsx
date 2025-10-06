@@ -6,39 +6,89 @@ import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import Footer from "../../components/student/Footer";
 import YouTube from "react-youtube";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const CourseDetails = () => {
   const { id } = useParams();
+
   const [courseData, setCourseData] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
   const [playerData, setPlayerData] = useState(null);
 
   const {
-    allCourses,
     calculateRating,
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
     currency,
+    backendURL,
+    userData,
+    getToken,
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
-    const findCourse = allCourses.find((course) => course._id === id);
-    setCourseData(findCourse);
+    try {
+      const {data} = await axios.get(backendURL + '/api/course/' + id, )      
+      
+      if(data.success){
+        console.log({data});
+        
+        setCourseData(data.course);
+      }else{
+      toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   };
 
+  const enrolledCourse = async () => {
+    try {      
+      if (!userData) {
+        return toast.warn("Please login to enroll the course");
+      }
+
+      if (isAlreadyEnrolled) {
+        return toast.warn("Already enrolled");
+      }
+      const token = await getToken();
+      const {data} = await axios.post(backendURL + '/api/user/purchase', {courseId: courseData._id}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if(data.success){
+        const {session_url} = data;
+        window.location.replace(session_url);
+        toast.success(data.message)
+        setIsAlreadyEnrolled(true);
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
   useEffect(() => {
     fetchCourseData();
-  }, [allCourses]);
+  }, []);
+
+   useEffect(() => {
+    if (userData && courseData) {
+      setIsAlreadyEnrolled(userData.enrolledCourse.includes(courseData._id));
+    }
+  }, [userData, courseData]);
 
   const toggleSection = (index) => {
     setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+  
   return courseData ? (
     <>
-      <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left">
-        <div className="absolute top-0 left-0 w-full h-section-height -z-1 bg-gradient-to-b from-cyan-100/70"></div>
+      <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-20 pt-10 text-left">
+        <div className="absolute top-0 left-0 w-full h-section-height -z-1 bg-gradient-to-b from-cyan-100/70"> heelllee</div>
 
         {/* left colum */}
         <div className="max-w-xl z-10 text-gray-500">
@@ -80,12 +130,12 @@ const CourseDetails = () => {
           </div>
           <p className="text-sm">
             Course by{" "}
-            <span className="text-blue-600 underline">GreatStack</span>
+            <span className="text-blue-600 underline">{courseData.educator.name}</span>
           </p>
           <div className="pt-8 text-gray-800">
             <h2 className="text-xl font-semibold">Course Structure</h2>
             <div className="pt-5">
-              {courseData.courseContent.map((chapter, index) => (
+              {courseData.courseContent?.map((chapter, index) => (
                 <div
                   className="border border-gray-300 bg-white mb-2 rounded"
                   key={index}
@@ -235,7 +285,7 @@ const CourseDetails = () => {
               </div>
             </div>
 
-            <button className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
+            <button onClick={enrolledCourse} className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
               {isAlreadyEnrolled ? "Already Enrolled" : "Enroll Now"}
             </button>
             <div className="pt-6">
@@ -244,7 +294,8 @@ const CourseDetails = () => {
                 <li>Lifetime access with free updates.</li>
                 <li>Step-by-step, hands-on project guidance.</li>
                 <li>Downloadable resources and source code.</li>
-                <li>Downloadable resources and source code.</li>
+                <li>Access on mobile and TV.</li>
+                <li>Certificate of completion.</li>
               </ul>
             </div>
           </div>
